@@ -220,6 +220,52 @@ module LEDMatrix_341450853309219412(
 
 endmodule
 
+// simple animation on 7-seg display
+module SevenSeg_341450853309219412(
+  input         clock,
+  input         reset,
+
+  output        up,
+  output        right,
+  output        down,
+  output        left
+);
+
+  localparam COUNTER_MAX = 8'hff;
+
+  // counter to increment upon every clock
+  reg [7:0] counter;
+
+  // state to increment upon every counter wrap
+  reg [1:0] state;
+
+  // set outputs using combinational logic based on state
+  assign up = (state == 2'd0) ? 1'b1 : 1'b0;
+  assign right = (state == 2'd1) ? 1'b1 : 1'b0;
+  assign down = (state == 2'd2) ? 1'b1 : 1'b0;
+  assign left = (state == 2'd3) ? 1'b1 : 1'b0;
+
+  always @(posedge clock) begin
+    if (reset) begin
+
+      counter <= 8'h0;
+      state <= 2'h0;
+
+    end else begin
+
+      // increment counter upon clock cycle
+      counter <= counter + 8'd1;
+
+      // increment state upon counter wrap
+      if (counter == COUNTER_MAX) begin
+        state <= state + 2'd1;
+      end
+
+    end
+  end
+
+endmodule
+
 module user_module_341450853309219412(
   input [7:0] io_in,
   output [7:0] io_out
@@ -228,16 +274,28 @@ module user_module_341450853309219412(
   wire clock;
   wire reset;
 
+  // LED matrix wires
   wire sclk;
   wire mosi;
   wire n_cs;
 
+  // 7-seg wires
+  wire up;
+  wire right;
+  wire down;
+  wire left;
+
   assign clock = io_in[0];
   assign reset = io_in[1];
 
-  assign sclk = io_out[0];
-  assign mosi = io_out[1];
-  assign n_cs = io_out[2];
+  assign io_out[0] = sclk;
+  assign io_out[1] = mosi;
+  assign io_out[5] = n_cs;
+
+  assign io_out[6] = up;
+  assign io_out[2] = right;
+  assign io_out[3] = down;
+  assign io_out[4] = left;
 
   LEDMatrix_341450853309219412 ledmatrix_inst(
     .clock(clock),
@@ -246,6 +304,16 @@ module user_module_341450853309219412(
     .sclk(sclk),
     .mosi(mosi),
     .n_cs(n_cs)
+  );
+
+  SevenSeg_341450853309219412 sevenseg_inst(
+    .clock(clock),
+    .reset(reset),
+
+    .up(up),
+    .right(right),
+    .down(down),
+    .left(left)
   );
 
 endmodule
