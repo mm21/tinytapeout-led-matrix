@@ -21,6 +21,9 @@ module SPIMaster_341450853309219412(
 
   localparam TX_COUNTER_MAX = 3'h7;
 
+  // number of cycles-1 to wait after asserting / before deasserting CS 
+  localparam CS_COUNTER_MAX = 4'd1;
+
   reg [1:0] state;
   reg [7:0] tx_byte_reg;
   reg sclk_mask;
@@ -29,6 +32,7 @@ module SPIMaster_341450853309219412(
   reg [2:0] tx_counter_reg;
   reg n_cs_reg;
   reg tx_clear_cs_reg;
+  reg [3:0] cs_delay_counter;
 
   assign tx_ready = tx_ready_reg;
   assign sclk = ~clock & sclk_mask;
@@ -46,6 +50,7 @@ module SPIMaster_341450853309219412(
       tx_counter_reg <= 3'd0;
       n_cs_reg <= 1'b1;
       tx_clear_cs_reg <= 1'b1;
+      cs_delay_counter <= 4'd0;
 
     end else begin
 
@@ -72,10 +77,17 @@ module SPIMaster_341450853309219412(
 
       end else if (state == STATE_CS_ASSERT) begin
 
-        // assert CS for one cycle before transitioning to TX
-        state <= STATE_TX;
-        sclk_mask <= 1'b1;
-        mosi_mask <= 1'b1;
+        // assert CS before transitioning to TX
+        if (cs_delay_counter == CS_COUNTER_MAX) begin
+
+          cs_delay_counter <= 4'd0;
+          state <= STATE_TX;
+          sclk_mask <= 1'b1;
+          mosi_mask <= 1'b1;
+
+        end else begin
+          cs_delay_counter <= cs_delay_counter + 4'd1;
+        end
 
       end else if (state == STATE_TX) begin
 
@@ -98,9 +110,16 @@ module SPIMaster_341450853309219412(
 
       end else if (state == STATE_CS_DEASSERT) begin
 
-        // wait one cycle before deasserting CS and transitioning to idle
-        state <= STATE_IDLE;
-        n_cs_reg <= 1'b1;
+        // wait before deasserting CS and transitioning to idle
+        if (cs_delay_counter == CS_COUNTER_MAX) begin
+
+          cs_delay_counter <= 4'd0;
+          state <= STATE_IDLE;
+          n_cs_reg <= 1'b1;
+
+        end else begin
+          cs_delay_counter <= cs_delay_counter + 4'd1;
+        end
 
       end
     end
