@@ -22,7 +22,7 @@ module SPIMaster_341450853309219412(
   localparam TX_COUNTER_MAX = 3'h7;
 
   // number of cycles-1 to wait after asserting / before deasserting CS 
-  localparam CS_COUNTER_MAX = 4'd1;
+  localparam CS_COUNTER_MAX = 4'd10;
 
   reg [1:0] state;
   reg [7:0] tx_byte_reg;
@@ -111,11 +111,20 @@ module SPIMaster_341450853309219412(
       end else if (state == STATE_CS_DEASSERT) begin
 
         // wait before deasserting CS and transitioning to idle
+
         if (cs_delay_counter == CS_COUNTER_MAX) begin
 
-          cs_delay_counter <= 4'd0;
-          state <= STATE_IDLE;
-          n_cs_reg <= 1'b1;
+          if (n_cs_reg == 1'b0) begin
+
+            cs_delay_counter <= 4'd0;
+            n_cs_reg <= 1'b1;
+
+          end else begin
+
+            cs_delay_counter <= 4'd0;
+            state <= STATE_IDLE;
+
+          end
 
         end else begin
           cs_delay_counter <= cs_delay_counter + 4'd1;
