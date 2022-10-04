@@ -1,23 +1,18 @@
 --- 
 # TinyTapeout project information
-#
-# As everyone will have access to all designs, try to make it easy for someone new to your design to know what
-# it does and how to operate it.
-#
-# This will be automatically collected and used to make a datasheet for the chip.
 project: 
-  author:       ""      # Your name
-  title:        ""      # Project title
-  description:  ""      # Short description of what your project does
-  how_it_works: ""      # Longer description of how the project works
-  how_to_test:  ""      # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
-  external_hw:  ""      # Describe any external hardware needed
-  doc_link:     ""      # URL to longer form documentation, eg the README.md in your repository
-  clock_hz:     0       # Clock frequency in Hz (if required)
-  language:     "wokwi" # other examples include Verilog, Amaranth, VHDL, etc
-  wokwi_id:     0       # the wokwi ID
-  picture:      ""      # relative path to a picture in your repository
-  inputs:               # a description of what the inputs do
+  author:       "Matt M"
+  title:        "RGB LED Matrix Driver"
+  description:  "Drives a simple animation on SparkFun's RGB LED 8x8 matrix backpack"
+  how_it_works: "Implements an SPI master to drive an animation with overlapping green/blue waves and a moving white diagonal. Some 7-segment wires are used for a 'sanity check' animation."
+  how_to_test:  "Wire accordingly and use a clock up to 12.5 KHz. Asynchronous reset is synchronized to the clock."
+  external_hw:  "RGB LED matrix backpack from SparkFun: https://www.sparkfun.com/products/retired/760"
+  doc_link:     ""
+  clock_hz:     12500
+  language:     "Verilog"
+  wokwi_id:     0
+  picture:      ""
+  inputs:
     - clock
     - reset
     - none
@@ -27,12 +22,12 @@ project:
     - none
     - none
   outputs:
-    - segment a         # a description of what the outputs do
-    - segment b
+    - SCLK
+    - MOSI
     - segment c
     - segment d
     - segment e
-    - segment f
+    - nCS
     - segment g
-    - none
+    - none (always high)
 
